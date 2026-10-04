@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraHabit - Modern Habit Tracker & Productivity Hub</title>
+    <meta name="description" content="Build better habits, track daily streaks, unlock achievements, and visualize your personal growth with AuraHabit.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Canvas Confetti for celebrations -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- App Stylesheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">
+                <div class="brand-logo">
+                    <i data-lucide="zap" class="brand-icon"></i>
+                </div>
+                <div class="brand-text">
+                    <h2>AuraHabit</h2>
+                    <span class="brand-tagline">Pulse of Progress</span>
+                </div>
+            </div>
+
+            <!-- User Level Widget in Sidebar -->
+            <div class="user-level-card">
+                <div class="level-header">
+                    <span class="badge-level" id="userLevelBadge">Lvl 1</span>
+                    <span class="rank-title" id="userRankTitle">Habit Novice</span>
+                </div>
+                <div class="xp-bar-container">
+                    <div class="xp-bar" id="xpProgressBar" style="width: 25%;"></div>
+                </div>
+                <div class="xp-text">
+                    <span id="currentXpText">25 XP</span> / <span id="nextLevelXpText">100 XP</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <button class="nav-item active" data-view="dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </button>
+
+                <button class="nav-item" data-view="matrix">
+                    <i data-lucide="calendar-days"></i>
+                    <span>Weekly Grid</span>
+                </button>
+
+                <button class="nav-item" data-view="heatmap">
+                    <i data-lucide="grid"></i>
+                    <span>Heatmaps</span>
+                </button>
+
+                <button class="nav-item" data-view="analytics">
+                    <i data-lucide="bar-chart-3"></i>
+                    <span>Analytics</span>
+                </button>
+
+                <button class="nav-item" data-view="timer">
+                    <i data-lucide="timer"></i>
+                    <span>Focus Timer</span>
+                </button>
+
+                <button class="nav-item" data-view="achievements">
+                    <i data-lucide="trophy"></i>
+                    <span>Badges</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Light/Dark Theme">
+                    <i data-lucide="moon" id="themeIcon"></i>
+                    <span id="themeText">Dark Mode</span>
+                </button>
+
+                <button class="sound-toggle-btn" id="soundToggleBtn" title="Toggle Sound Effects">
+                    <i data-lucide="volume-2" id="soundIcon"></i>
+                    <span id="soundText">Sound On</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top App Bar -->
+            <header class="top-bar">
+                <div class="header-left">
+                    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <div class="date-display">
+                        <h1 id="currentDayTitle">Today</h1>
+                        <p id="fullDateSub">Sunday, Oct 4, 2026</p>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <div class="quote-pill" id="quoteContainer">
+                        <i data-lucide="quote" class="quote-icon"></i>
+                        <span id="quoteText">"We are what we repeatedly do. Excellence is not an act, but a habit."</span>
+                        <button id="refreshQuoteBtn" title="New Quote"><i data-lucide="refresh-cw"></i></button>
+                    </div>
+
+                    <button class="btn btn-primary btn-add-habit" id="openAddHabitModalBtn">
+                        <i data-lucide="plus"></i>
+                        <span>New Habit</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- VIEW 1: Dashboard View -->
+            <section class="view-panel active" id="view-dashboard">
+                <!-- Summary Stats Bar -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon icon-purple">
+                            <i data-lucide="check-circle-2"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Completed Today</span>
+                            <div class="stat-value-group">
+                                <span class="stat-value" id="statCompletedToday">0</span>
+                                <span class="stat-total" id="statTotalToday">/ 0</span>
+                            </div>
+                        </div>
+                        <div class="stat-progress-ring">
+                            <svg class="ring-svg" width="54" height="54">
+                                <circle class="ring-bg" cx="27" cy="27" r="22"></circle>
+                                <circle class="ring-progress" id="todayProgressRing" cx="27" cy="27" r="22"></circle>
+                            </svg>
+                            <span class="ring-text" id="todayProgressPercent">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon icon-amber">
+                            <i data-lucide="flame"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Best Streak</span>
+                            <span class="stat-value" id="statBestStreak">0 Days</span>
+                        </div>
+                        <div class="stat-subtext">Active momentum</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon icon-cyan">
+                            <i data-lucide="target"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Weekly Rate</span>
+                            <span class="stat-value" id="statWeeklyRate">0%</span>
+                        </div>
+                        <div class="stat-subtext">Past 7 days performance</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon icon-emerald">
+                            <i data-lucide="award"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-label">Total Check-ins</span>
+                            <span class="stat-value" id="statTotalCheckins">0</span>
+                        </div>
+                        <div class="stat-subtext">Lifetime completions</div>
+                    </div>
+                </div>
+
+                <!-- Filter & Search Bar -->
+                <div class="controls-bar">
+                    <div class="search-box">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="habitSearchInput" placeholder="Search habits...">
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Category:</label>
+                        <select id="categoryFilter">
+                            <option value="all">All Categories</option>
+                            <option value="Health">Health & Wellness</option>
+                            <option value="Productivity">Productivity</option>
+                            <option value="Fitness">Fitness</option>
+                            <option value="Mindfulness">Mindfulness</option>
+                            <option value="Learning">Learning</option>
+                            <option value="Finance">Finance</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <select id="statusFilter">
+                            <option value="all">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+
+                    <div class="view-date-navigator">
+                        <button id="prevDayBtn" title="Previous Day"><i data-lucide="chevron-left"></i></button>
+                        <span id="selectedDateLabel">Today</span>
+                        <button id="todayDateBtn" class="btn-sm" style="display:none;">Go Today</button>
+                        <button id="nextDayBtn" title="Next Day"><i data-lucide="chevron-right"></i></button>
+                    </div>
+                </div>
+
+                <!-- Habits List Grid -->
+                <div class="habits-section">
+                    <div class="section-header">
+                        <h3>My Daily Habits</h3>
+                        <span class="count-badge" id="habitCountBadge">0 habits</span>
+                    </div>
+
+                    <div class="habits-grid" id="habitsContainer">
+                        <!-- Dynamic Habit Cards Rendered Here -->
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="empty-state hidden" id="emptyState">
+                        <div class="empty-icon">
+                            <i data-lucide="sparkles"></i>
+                        </div>
+                        <h3>No habits found</h3>
+                        <p>Create your first habit or adjust your search filters to get started!</p>
+                        <button class="btn btn-primary" id="emptyAddHabitBtn">
+                            <i data-lucide="plus"></i> Add a Habit
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 2: Weekly Matrix View -->
+            <section class="view-panel hidden" id="view-matrix">
+                <div class="panel-header">
+                    <div>
+                        <h2>Weekly Matrix View</h2>
+                        <p>Track habit consistency across every day of the week.</p>
+                    </div>
+                    <div class="matrix-week-picker">
+                        <button id="prevWeekBtn" class="btn-icon"><i data-lucide="chevron-left"></i></button>
+                        <span id="weekRangeText" class="week-range-label">Oct 4 - Oct 10</span>
+                        <button id="nextWeekBtn" class="btn-icon"><i data-lucide="chevron-right"></i></button>
+                    </div>
+                </div>
+
+                <div class="matrix-table-container">
+                    <table class="matrix-table" id="matrixTable">
+                        <!-- Rendered by JS -->
+                    </table>
+                </div>
+            </section>
+
+            <!-- VIEW 3: Heatmap View -->
+            <section class="view-panel hidden" id="view-heatmap">
+                <div class="panel-header">
+                    <div>
+                        <h2>Activity Heatmaps</h2>
+                        <p>Visualizing long-term streak patterns over the past 90 days.</p>
+                    </div>
+                </div>
+
+                <div class="heatmap-habits-list" id="heatmapHabitsContainer">
+                    <!-- Individual Habit Heatmaps Rendered by JS -->
+                </div>
+            </section>
+
+            <!-- VIEW 4: Analytics Dashboard -->
+            <section class="view-panel hidden" id="view-analytics">
+                <div class="panel-header">
+                    <div>
+                        <h2>Performance & Insights</h2>
+                        <p>Detailed breakdown of your productivity trends and consistency metrics.</p>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>Weekly Completion Rate</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="weeklyTrendChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <h3>Habits by Category</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="categoryPieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 5: Focus Timer -->
+            <section class="view-panel hidden" id="view-timer">
+                <div class="timer-container">
+                    <div class="timer-card">
+                        <h2>Focus & Habit Timer</h2>
+                        <p>Pair your habits with dedicated deep focus sessions.</p>
+
+                        <div class="timer-habit-select">
+                            <label>Link to Habit (Optional):</label>
+                            <select id="timerHabitSelect">
+                                <option value="">General Focus Session</option>
+                            </select>
+                        </div>
+
+                        <div class="timer-display-ring">
+                            <svg width="240" height="240">
+                                <circle cx="120" cy="120" r="105" class="timer-ring-bg"></circle>
+                                <circle cx="120" cy="120" r="105" class="timer-ring-progress" id="timerRingProgress"></circle>
+                            </svg>
+                            <div class="timer-text-overlay">
+                                <span class="timer-time" id="timerDisplay">25:00</span>
+                                <span class="timer-mode-label" id="timerModeLabel">Focus Phase</span>
+                            </div>
+                        </div>
+
+                        <div class="timer-presets">
+                            <button class="preset-btn active" data-minutes="25">25 Min</button>
+                            <button class="preset-btn" data-minutes="15">15 Min</button>
+                            <button class="preset-btn" data-minutes="45">45 Min</button>
+                            <button class="preset-btn" data-minutes="60">60 Min</button>
+                        </div>
+
+                        <div class="timer-controls">
+                            <button class="btn btn-primary btn-lg" id="timerStartBtn">
+                                <i data-lucide="play" id="timerPlayIcon"></i> <span id="timerStartText">Start</span>
+                            </button>
+                            <button class="btn btn-secondary btn-lg" id="timerResetBtn">
+                                <i data-lucide="rotate-ccw"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 6: Badges & Gamification -->
+            <section class="view-panel hidden" id="view-achievements">
+                <div class="panel-header">
+                    <div>
+                        <h2>Unlocked Achievements</h2>
+                        <p>Earn XP by maintaining streaks and completing daily habits to unlock badges.</p>
+                    </div>
+                </div>
+
+                <div class="badges-grid" id="badgesContainer">
+                    <!-- Rendered by JS -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL: Add / Edit Habit -->
+    <div class="modal-backdrop hidden" id="habitModalBackdrop">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modalTitle">Create New Habit</h3>
+                <button class="modal-close-btn" id="closeModalBtn"><i data-lucide="x"></i></button>
+            </div>
+
+            <form id="habitForm" class="modal-body">
+                <input type="hidden" id="habitIdInput">
+
+                <div class="form-group">
+                    <label for="habitNameInput">Habit Name *</label>
+                    <input type="text" id="habitNameInput" placeholder="e.g., Morning Meditation, Read 20 Pages" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="habitCategorySelect">Category</label>
+                        <select id="habitCategorySelect">
+                            <option value="Health">Health & Wellness</option>
+                            <option value="Productivity">Productivity</option>
+                            <option value="Fitness">Fitness</option>
+                            <option value="Mindfulness">Mindfulness</option>
+                            <option value="Learning">Learning</option>
+                            <option value="Finance">Finance</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="habitColorInput">Accent Color</label>
+                        <div class="color-picker-palette" id="colorPalette">
+                            <span class="color-dot selected" data-color="#6366F1" style="background:#6366F1;"></span>
+                            <span class="color-dot" data-color="#06B6D4" style="background:#06B6D4;"></span>
+                            <span class="color-dot" data-color="#10B981" style="background:#10B981;"></span>
+                            <span class="color-dot" data-color="#F59E0B" style="background:#F59E0B;"></span>
+                            <span class="color-dot" data-color="#EC4899" style="background:#EC4899;"></span>
+                            <span class="color-dot" data-color="#8B5CF6" style="background:#8B5CF6;"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="habitEmojiInput">Emoji Icon</label>
+                        <input type="text" id="habitEmojiInput" placeholder="⚡, 🧘, 📚, 🏃..." value="⚡" maxlength="4">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="habitTargetInput">Daily Target Goal</label>
+                        <div class="target-input-group">
+                            <input type="number" id="habitTargetInput" min="1" max="100" value="1">
+                            <input type="text" id="habitUnitInput" placeholder="times/mins/glasses" value="times">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="habitNotesInput">Notes / Description (Optional)</label>
+                    <textarea id="habitNotesInput" rows="2" placeholder="Why this habit matters to you..."></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelModalBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveHabitBtn">Save Habit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- App Logic Script -->
+    <script src="app.js"></script>
+</body>
+</html>
